@@ -4,10 +4,11 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.duyvu.carbooking.entity.User;
+import org.duyvu.carbooking.entity.BaseUser;
 import org.duyvu.carbooking.model.LoginRequest;
 import org.duyvu.carbooking.model.Token;
-import org.duyvu.carbooking.repository.UserRepository;
+import org.duyvu.carbooking.model.UserType;
+import org.duyvu.carbooking.repository.BaseUserRepository;
 import org.duyvu.carbooking.utils.JwtUtils;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,19 +19,21 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 	private final JwtUtils jwtUtils;
 
-	private final UserRepository userRepository;
-
 	private final PasswordEncoder passwordEncoder;
 
+	private final BaseUserRepository baseUserRepository;
+
 	public Token login(LoginRequest loginRequest) {
-		User user = userRepository.findByName(loginRequest.getUsername()).orElseThrow(() -> new EntityNotFoundException("User not found"));
+		BaseUser user
+				= baseUserRepository.findByUsername(loginRequest.getUsername(), loginRequest.getUserType())
+									.orElseThrow(() -> new EntityNotFoundException("Username not found"));
 		if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
 			throw new BadCredentialsException("Wrong password");
 		}
 
 		return Token.builder().accessToken(
-							jwtUtils.generateAccessToken(loginRequest.getUsername(), Map.of(JwtUtils.ClaimAttribute.ROLE,
-																							user.getRole().name())))
+							jwtUtils.generateAccessToken(loginRequest.getUsername(),
+														 Map.of(JwtUtils.ClaimAttribute.ROLE, user.getAuthorities())))
 					.refreshToken(jwtUtils.generateRefreshToken(loginRequest.getUsername())).build();
 	}
 
@@ -40,9 +43,12 @@ public class AuthService {
 		}
 
 		String username = jwtUtils.extractUsername(refreshToken);
-		User user = userRepository.findByName(username).orElseThrow(() -> new EntityNotFoundException("User not found"));
+		UserType userType = UserType.from(jwtUtils.extractRole(refreshToken));
+
+		BaseUser user =
+				baseUserRepository.findByUsername(username, userType).orElseThrow(() -> new EntityNotFoundException("Username not found"));
 		return Token.builder()
-					.accessToken(jwtUtils.generateAccessToken(username, Map.of(JwtUtils.ClaimAttribute.ROLE, user.getRole().name())))
+					.accessToken(jwtUtils.generateAccessToken(username, Map.of(JwtUtils.ClaimAttribute.ROLE, user)))
 					.refreshToken(refreshToken).build();
 	}
 }

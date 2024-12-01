@@ -1,57 +1,81 @@
-CREATE TABLE `user` (
-    id VARCHAR(36) PRIMARY KEY,
-    credential VARCHAR(258) NOT NULL UNIQUE,
-    name VARCHAR(258) NOT NULL UNIQUE,
-    dob DATETIME,
-    gender VARCHAR(36),
-    role VARCHAR(36),
-    `password` VARCHAR(255) NOT NULL
-);
+CREATE TABLE `customer`(id bigint PRIMARY KEY AUTO_INCREMENT,
+                        `username` varchar(32) NOT NULL,
+                        `email` varchar(128) NOT NULL UNIQUE,
+                        `password` varchar(1024) NOT NULL,
+                        `citizen_identification_number` varchar(32) NOT NULL UNIQUE,
+                        `dob` datetime NOT NULL,
+                        `gender` ENUM ('MALE', 'FEMALE', 'OTHERS') NOT NULL,
+                        `customer_status` ENUM('NOT_BOOKED', 'BOOKED', 'DRIVER_ASSIGNED', 'ON_THE_WAY', 'CANCELLED') NOT NULL);
 
-CREATE TABLE vehicle (
-    id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
-    type VARCHAR(36) NOT NULL,
-    status VARCHAR(36) NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES `user`(id)
-);
 
-CREATE TABLE location (
-    id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) UNIQUE NOT NULL,
-    point POINT,
-    FOREIGN KEY (user_id) REFERENCES `user`(id)
-);
+CREATE TABLE `admin`(id bigint PRIMARY KEY AUTO_INCREMENT,
+                     `username` varchar(32) NOT NULL,
+                     `email` varchar(128) NOT NULL UNIQUE,
+                     `password` varchar(1024) NOT NULL,
+                     `citizen_identification_number` varchar(32) NOT NULL UNIQUE,
+                     `dob` datetime NOT NULL,
+                     `gender` ENUM ('MALE', 'FEMALE', 'OTHERS') NOT NULL,
+                     `company_number` varchar(32) NOT NULL UNIQUE);
 
-CREATE TABLE price_unit (
-    id VARCHAR(36) PRIMARY KEY,
-    vehicle_type VARCHAR(36) NOT NULL UNIQUE,
-    price DOUBLE NOT NULL
-);
 
-CREATE TABLE `transaction` (
-    id VARCHAR(36) PRIMARY KEY,
-    customer_id VARCHAR(36) NOT NULL,
-    driver_id VARCHAR(36) NOT NULL,
-    start_point POINT NOT NULL,
-    end_point POINT NOT NULL,
-    fare DOUBLE NOT NULL,
-    FOREIGN KEY (customer_id) REFERENCES `user`(id),
-    FOREIGN KEY (driver_id) REFERENCES `user`(id)
-);
+CREATE TABLE `driver`(id bigint PRIMARY KEY AUTO_INCREMENT,
+                      `username` varchar(32) NOT NULL,
+                      `email` varchar(128) NOT NULL UNIQUE,
+                      `password` varchar(1024) NOT NULL,
+                      `citizen_identification_number` varchar(32) NOT NULL UNIQUE,
+                      `dob` datetime NOT NULL,
+                      `gender` ENUM ('MALE', 'FEMALE', 'OTHERS') NOT NULL,
+                      `driver_license` varchar(128) NOT NULL UNIQUE,
+                      `transportation_type_id` int NOT NULL,
+                      last_updated timestamp NOT NULL,
+                      LOCATION POINT NOT NULL,
+                      `driver_status` ENUM('NOT_BOOKED', 'ASSIGNED', 'ON_THE_WAY', 'CANCELLED', 'OFFLINE'));
 
-CREATE TABLE review (
-    id VARCHAR(36) PRIMARY KEY,
-    transaction_id VARCHAR(36) NOT NULL,
-    rate INT NOT NULL CHECK (rate BETWEEN 1 AND 5),
-    reason VARCHAR(258),
-    FOREIGN KEY (transaction_id) REFERENCES `transaction`(id)
-);
 
-CREATE TABLE discount (
-    id VARCHAR(36) PRIMARY KEY,
-    fare DOUBLE NOT NULL,
-    transaction_id VARCHAR(36),
-    is_used BOOLEAN NOT NULL,
-    FOREIGN KEY (transaction_id) REFERENCES `transaction`(id)
-);
+CREATE TABLE transportation_type(id int PRIMARY KEY AUTO_INCREMENT,
+                                 `type` varchar(128) NOT NULL);
+
+
+CREATE TABLE review(id bigint PRIMARY KEY AUTO_INCREMENT,
+                    ride_transaction_id bigint NOT NULL,
+                    rate int CHECK (rate >= 1
+                        AND rate <= 10) NOT NULL,
+                    `comment` VARCHAR(128));
+
+
+CREATE TABLE fare(transportation_type_id int NOT NULL PRIMARY KEY,
+                  price DOUBLE NOT NULL,
+                  rush_hour_rate DOUBLE NOT NULL,
+                  normal_hour_rate DOUBLE NOT NULL,
+                  holiday_rate DOUBLE NOT NULL,
+                  normal_day_rate DOUBLE NOT NULL);
+
+
+CREATE TABLE `ride_transaction`(id bigint PRIMARY KEY AUTO_INCREMENT,
+                                `start_location` POINT NOT NULL,
+                                `destination_location` POINT NOT NULL,
+                                price DOUBLE NOT NULL,
+                                customer_id bigint NOT NULL,
+                                driver_id bigint NOT NULL,
+                                `start_time` timestamp NOT NULL,
+                                `end_time` timestamp NOT NULL);
+
+
+ALTER TABLE `driver` ADD CONSTRAINT transportation_type_driver_pk
+    FOREIGN KEY (transportation_type_id) REFERENCES transportation_type(id);
+
+
+ALTER TABLE `fare` ADD CONSTRAINT transportation_type_fare_pk
+    FOREIGN KEY (transportation_type_id) REFERENCES transportation_type(id);
+
+
+ALTER TABLE `ride_transaction` ADD CONSTRAINT customer_ride_transaction_pk
+    FOREIGN KEY (customer_id) REFERENCES customer(id);
+
+
+ALTER TABLE `ride_transaction` ADD CONSTRAINT driver_ride_transaction_pk
+    FOREIGN KEY (driver_id) REFERENCES driver(id);
+
+
+ALTER TABLE `review` ADD CONSTRAINT ride_transaction_review_pk
+    FOREIGN KEY (ride_transaction_id) REFERENCES ride_transaction(id);

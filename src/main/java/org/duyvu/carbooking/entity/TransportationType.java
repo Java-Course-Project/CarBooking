@@ -2,39 +2,38 @@ package org.duyvu.carbooking.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "review", schema = "car_booking")
-public class Review {
+@Table(name = "transportation_type", schema = "car_booking")
+public class TransportationType {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
-	private Long id;
-
-	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "ride_transaction_id", nullable = false)
-	private RideTransaction rideTransaction;
-
-	@NotNull
-	@Column(name = "rate", nullable = false)
-	private Integer rate;
+	private Integer id;
 
 	@Size(max = 128)
-	@Column(name = "comment", length = 128)
-	private String comment;
+	@NotNull
+	@Column(name = "type", nullable = false, length = 128)
+	private String type;
+
+	@OneToMany(mappedBy = "transportationType")
+	private Set<Driver> drivers = new LinkedHashSet<>();
+
+	@OneToOne(mappedBy = "transportationType")
+	private Fare fare;
 
 }

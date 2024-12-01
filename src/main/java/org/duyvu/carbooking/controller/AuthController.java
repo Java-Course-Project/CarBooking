@@ -1,5 +1,7 @@
 package org.duyvu.carbooking.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.duyvu.carbooking.model.LoginRequest;
 import org.duyvu.carbooking.model.Token;
@@ -17,12 +19,12 @@ public class AuthController {
 	private final AuthService authService;
 
 	@PostMapping("/login")
-	public ResponseEntity<Token> login(@RequestBody LoginRequest loginRequest) {
+	public ResponseEntity<Token> login(@RequestBody @Valid LoginRequest loginRequest) {
 		return ResponseEntity.ok(authService.login(loginRequest));
 	}
 
 	@PostMapping("/refresh")
-	public ResponseEntity<Token> refresh(@RequestBody String refreshToken) {
+	public ResponseEntity<Token> refresh(@RequestBody @Valid @NotNull String refreshToken) {
 		return ResponseEntity.ok(authService.refresh(refreshToken));
 	}
 }

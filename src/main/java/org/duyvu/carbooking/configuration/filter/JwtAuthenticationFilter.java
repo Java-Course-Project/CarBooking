@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.duyvu.carbooking.model.UserType;
 import org.duyvu.carbooking.utils.JwtUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -29,9 +30,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			String token = authHeader.substring(7);
 			if (jwtUtils.isValidateToken(token)) {
 				String username = jwtUtils.extractUsername(token);
+				UserType userType = UserType.from(jwtUtils.extractRole(token));
 				List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(jwtUtils.extractRole(token)));
 				UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-						username, null, authorities);
+						String.format("%s|%s", username, userType.toString()), null, authorities);
 				auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 				SecurityContextHolder.getContext().setAuthentication(auth);
 			}
