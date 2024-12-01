@@ -1,11 +1,14 @@
 package org.duyvu.carbooking.service;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import lombok.RequiredArgsConstructor;
 import org.duyvu.carbooking.entity.Admin;
+import org.duyvu.carbooking.mapper.AdminToAdminResponseMapper;
+import org.duyvu.carbooking.model.AdminResponse;
 import org.duyvu.carbooking.model.Gender;
 import org.duyvu.carbooking.repository.AdminRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,6 +38,12 @@ public class AdminService {
 
 			adminRepository.save(superAdmin);
 		}
+	}
+
+	public AdminResponse findById(Long id) {
+		final Admin admin = adminRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Admin not found"));
+
+		return AdminToAdminResponseMapper.INSTANCE.map(admin);
 	}
 
 }
