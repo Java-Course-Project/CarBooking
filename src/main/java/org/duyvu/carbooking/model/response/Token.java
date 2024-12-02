@@ -1,4 +1,4 @@
-package org.duyvu.carbooking.model;
+package org.duyvu.carbooking.model.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

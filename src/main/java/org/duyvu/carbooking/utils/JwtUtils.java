@@ -23,7 +23,8 @@ public class JwtUtils {
 	private final Duration expiration;
 
 	public enum ClaimAttribute {
-		ROLE("role");
+		ROLE("role"),
+		ID("id");
 
 		private final String key;
 
@@ -63,6 +64,11 @@ public class JwtUtils {
 
 	public String extractUsername(String token) {
 		return extractClaim(token, Claims::getSubject);
+	}
+
+	public Long extractId(String token) {
+		Claims claims = extractAllClaims(token);
+		return claims.get(ClaimAttribute.ID.key, Long.class);
 	}
 
 	public LocalDateTime extractExpiration(String token) {

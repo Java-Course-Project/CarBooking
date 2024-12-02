@@ -1,7 +1,7 @@
 package org.duyvu.carbooking.mapper;
 
 import org.duyvu.carbooking.entity.Admin;
-import org.duyvu.carbooking.model.AdminResponse;
+import org.duyvu.carbooking.model.response.AdminResponse;
 import org.mapstruct.factory.Mappers;
 
 @org.mapstruct.Mapper()

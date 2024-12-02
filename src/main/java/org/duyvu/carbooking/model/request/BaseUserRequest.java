@@ -1,18 +1,18 @@
-package org.duyvu.carbooking.model;
+package org.duyvu.carbooking.model.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.duyvu.carbooking.model.Gender;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BaseUserResponse {
-	private Long id;
-
+public class BaseUserRequest {
 	@Size(max = 32)
 	@NotNull
 	private String username;
@@ -23,6 +23,7 @@ public class BaseUserResponse {
 
 	@Size(max = 32)
 	@NotNull
+	@JsonProperty("citizen_identification_number")
 	private String citizenIdentificationNumber;
 
 	@NotNull
@@ -30,5 +31,9 @@ public class BaseUserResponse {
 
 	@NotNull
 	private Gender gender;
+
+	@Size(max = 32)
+	@NotNull
+	private String password;
 
 }

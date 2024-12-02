@@ -5,12 +5,13 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.duyvu.carbooking.entity.BaseUser;
-import org.duyvu.carbooking.model.LoginRequest;
-import org.duyvu.carbooking.model.Token;
+import org.duyvu.carbooking.model.request.LoginRequest;
+import org.duyvu.carbooking.model.response.Token;
 import org.duyvu.carbooking.model.UserType;
 import org.duyvu.carbooking.repository.BaseUserRepository;
 import org.duyvu.carbooking.utils.JwtUtils;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +34,9 @@ public class AuthService {
 
 		return Token.builder().accessToken(
 							jwtUtils.generateAccessToken(loginRequest.getUsername(),
-														 Map.of(JwtUtils.ClaimAttribute.ROLE, user.getAuthorities())))
+														 Map.of(JwtUtils.ClaimAttribute.ROLE, user.getAuthorities().stream().map(
+																		GrantedAuthority::getAuthority).findFirst().orElse(""),
+																JwtUtils.ClaimAttribute.ID, user.getId())))
 					.refreshToken(jwtUtils.generateRefreshToken(loginRequest.getUsername())).build();
 	}
 
@@ -48,7 +51,11 @@ public class AuthService {
 		BaseUser user =
 				baseUserRepository.findByUsername(username, userType).orElseThrow(() -> new EntityNotFoundException("Username not found"));
 		return Token.builder()
-					.accessToken(jwtUtils.generateAccessToken(username, Map.of(JwtUtils.ClaimAttribute.ROLE, user)))
+					.accessToken(
+							jwtUtils.generateAccessToken(username,
+														 Map.of(JwtUtils.ClaimAttribute.ROLE, user.getAuthorities().stream().map(
+																		GrantedAuthority::getAuthority).findFirst().orElse(""),
+																JwtUtils.ClaimAttribute.ID, user.getId())))
 					.refreshToken(refreshToken).build();
 	}
 }

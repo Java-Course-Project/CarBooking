@@ -1,5 +1,6 @@
 package org.duyvu.carbooking.model;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.Arrays;
 import lombok.Getter;
 
@@ -13,8 +14,8 @@ public enum UserType {
 		this.value = value;
 	}
 
-	public static UserType from(String value) {
-		return Arrays.stream(UserType.values()).filter(e -> e.value.equals(value)).findFirst()
+	public static UserType from(@NotNull String value) {
+		return Arrays.stream(UserType.values()).filter(e -> e.value.equals(value.replace("ROLE_", ""))).findFirst()
 					 .orElseThrow(() -> new IllegalArgumentException("Invalid user type: " + value));
 	}
 }
