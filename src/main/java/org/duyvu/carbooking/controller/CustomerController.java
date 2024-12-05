@@ -24,7 +24,7 @@ public class CustomerController {
 	@GetMapping("/{customer_id}")
 	@PreAuthorize("hasRole('ADMIN') OR (hasRole('CUSTOMER') AND authentication.credentials == id)")
 	public ResponseEntity<CustomerResponse> findById(@PathVariable("customer_id") Long id) {
-		return ResponseEntity.ok(customerService.findById(id));
+		return ResponseEntity.ok(customerService.findBy(id));
 	}
 
 	@GetMapping("")

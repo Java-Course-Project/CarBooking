@@ -2,6 +2,8 @@ package org.duyvu.carbooking.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,6 +15,9 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
+import org.duyvu.carbooking.model.RideTransactionStatus;
+import org.hibernate.annotations.CreationTimestamp;
+import org.locationtech.jts.geom.Point;
 
 @Getter
 @Setter
@@ -35,6 +40,7 @@ public class RideTransaction {
 
 	@NotNull
 	@Column(name = "start_time", nullable = false)
+	@CreationTimestamp
 	private Instant startTime;
 
 	@NotNull
@@ -44,18 +50,17 @@ public class RideTransaction {
 
 	@NotNull
 	@Column(name = "end_time", nullable = false)
+	@CreationTimestamp
 	private Instant endTime;
 
-/*
- TODO [Reverse Engineering] create field to map the 'start_location' column
- Available actions: Define target Java type | Uncomment as is | Remove column mapping
-    @Column(name = "start_location", columnDefinition = "point not null")
-    private Object startLocation;
-*/
-/*
- TODO [Reverse Engineering] create field to map the 'destination_location' column
- Available actions: Define target Java type | Uncomment as is | Remove column mapping
-    @Column(name = "destination_location", columnDefinition = "point not null")
-    private Object destinationLocation;
-*/
+	@Column(name = "start_location", columnDefinition = "point not null")
+	private Point startLocation;
+
+	@Column(name = "destination_location", columnDefinition = "point not null")
+	private Point destinationLocation;
+
+	@NotNull
+	@Column(name = "ride_transaction_status", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private RideTransactionStatus rideTransactionStatus;
 }

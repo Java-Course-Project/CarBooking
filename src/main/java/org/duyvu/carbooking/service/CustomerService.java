@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +25,7 @@ public class CustomerService {
 		return customerRepository.findAll(pageable).map(CustomerToCustomerResponseMapper.INSTANCE::map);
 	}
 
-	public CustomerResponse findById(Long id) {
+	public CustomerResponse findBy(Long id) {
 		if (customerRepository.existsById(id)) {
 			throw new EntityNotFoundException("Customer not found");
 		}
@@ -33,12 +34,14 @@ public class CustomerService {
                 () -> new EntityNotFoundException("Customer not found")));
 	}
 
+	@Transactional
 	public Long save(CustomerRequest request) {
 		Customer customer = CustomerRequestToCustomerMapper.INSTANCE.map(request);
 		customer.setCustomerStatus(CustomerStatus.NOT_BOOKED);
 		return customerRepository.save(customer).getId();
 	}
 
+	@Transactional
 	public Long update(Long id, CustomerRequest request) {
 		if (customerRepository.existsById(id)) {
 			throw new EntityNotFoundException("Customer not found");
@@ -54,5 +57,19 @@ public class CustomerService {
 
 		customer.setCustomerStatus(CustomerStatus.NOT_BOOKED);
         return customerRepository.save(customer).getId();
+	}
+
+	@Transactional
+	Long updateStatus(Long id, CustomerStatus status) {
+		Customer customer = customerRepository.findByIdThenLock(id).orElseThrow(() -> new EntityNotFoundException("Driver not found"));
+		customer.setCustomerStatus(status);
+		return customerRepository.save(customer).getId();
+	}
+
+	@Transactional
+	Long findIdBy(Long id, CustomerStatus status) {
+		return customerRepository.findByIdAndStatusThenLock(id, status)
+								 .orElseThrow(() -> new EntityNotFoundException("Customer not found or not in %s".formatted(status))).getId();
+
 	}
 }

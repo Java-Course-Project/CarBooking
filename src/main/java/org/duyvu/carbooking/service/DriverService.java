@@ -9,6 +9,8 @@ import org.duyvu.carbooking.model.DriverStatus;
 import org.duyvu.carbooking.model.request.DriverRequest;
 import org.duyvu.carbooking.model.response.DriverResponse;
 import org.duyvu.carbooking.repository.DriverRepository;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,6 +23,8 @@ public class DriverService {
 	private final DriverRepository driverRepository;
 
 	private final PasswordEncoder passwordEncoder;
+
+	private final GeometryFactory factory;
 
 	public Page<DriverResponse> findAll(Pageable pageable) {
 		return driverRepository.findAll(pageable).map(DriverToDriverResponseMapper.INSTANCE::map);
@@ -47,7 +51,7 @@ public class DriverService {
 		if (driverRepository.existsById(id)) {
 			throw new EntityNotFoundException("DriverService not found");
 		}
-		Driver driver = driverRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Driver not found"));
+		Driver driver = driverRepository.findByIdThenLock(id).orElseThrow(() -> new EntityNotFoundException("Driver not found"));
 		driver.setEmail(request.getEmail());
 		driver.setGender(request.getGender());
 		driver.setDob(request.getDob());
@@ -56,8 +60,30 @@ public class DriverService {
 		driver.setPassword(passwordEncoder.encode(request.getPassword()));
 
 		driver.setDriverLicense(request.getDriverLicense());
-		driver.setDriverStatus(DriverStatus.NOT_BOOKED);
+		driver.setDriverStatus(driver.getDriverStatus());
 
 		return driverRepository.save(driver).getId();
+	}
+
+	@Transactional
+	public Long updateLocation(Long id, Coordinate coordinate) {
+		Driver driver = driverRepository.findByIdThenLock(id).orElseThrow(() -> new EntityNotFoundException("Driver not found"));
+		driver.setLocation(factory.createPoint(coordinate));
+		if (DriverStatus.OFFLINE.equals(driver.getDriverStatus())) {
+			driver.setDriverStatus(DriverStatus.NOT_BOOKED);
+		}
+		return driverRepository.save(driver).getId();
+	}
+
+	@Transactional
+	public Long updateStatus(Long id, DriverStatus status) {
+		Driver driver = driverRepository.findByIdThenLock(id).orElseThrow(() -> new EntityNotFoundException("Driver not found"));
+		driver.setDriverStatus(status);
+		return driverRepository.save(driver).getId();
+	}
+	
+	@Transactional
+	public Long findShortestAvailableDriver(Coordinate startLocation) {
+		return driverRepository.findShortestAvailableDriverId(factory.createPoint(startLocation)).orElse(null);
 	}
 }

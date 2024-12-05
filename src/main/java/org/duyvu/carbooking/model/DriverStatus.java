@@ -1,5 +1,5 @@
 package org.duyvu.carbooking.model;
 
 public enum DriverStatus {
-	NOT_BOOKED, ASSIGNED, ON_THE_WAY, CANCELLED, OFFLINE
+	NOT_BOOKED, WAIT_FOR_CONFIRMATION, ASSIGNED, PICKED, OFFLINE
 }

@@ -1,9 +1,8 @@
 package org.duyvu.carbooking.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
@@ -12,16 +11,23 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.duyvu.carbooking.configuration.generator.IdGeneratorOrUseExistedId;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "transportation_type", schema = "car_booking")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class TransportationType {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@IdGeneratorOrUseExistedId
 	@Column(name = "id", nullable = false)
 	private Integer id;
 
@@ -33,7 +39,7 @@ public class TransportationType {
 	@OneToMany(mappedBy = "transportationType")
 	private Set<Driver> drivers = new LinkedHashSet<>();
 
-	@OneToOne(mappedBy = "transportationType")
+	@OneToOne(mappedBy = "transportationType", cascade = CascadeType.ALL)
 	private Fare fare;
 
 }

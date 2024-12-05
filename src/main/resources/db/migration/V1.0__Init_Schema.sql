@@ -5,7 +5,7 @@ CREATE TABLE `customer`(id bigint PRIMARY KEY AUTO_INCREMENT,
                         `citizen_identification_number` varchar(32) NOT NULL UNIQUE,
                         `dob` datetime NOT NULL,
                         `gender` ENUM ('MALE', 'FEMALE', 'OTHERS') NOT NULL,
-                        `customer_status` ENUM('NOT_BOOKED', 'BOOKED', 'DRIVER_ASSIGNED', 'ON_THE_WAY', 'CANCELLED') NOT NULL);
+                        `customer_status` ENUM('NOT_BOOKED', 'BOOKED', 'DRIVER_ASSIGNED', 'ON_THE_WAY') NOT NULL);
 
 
 CREATE TABLE `admin`(id bigint PRIMARY KEY AUTO_INCREMENT,
@@ -28,8 +28,8 @@ CREATE TABLE `driver`(id bigint PRIMARY KEY AUTO_INCREMENT,
                       `driver_license` varchar(128) NOT NULL UNIQUE,
                       `transportation_type_id` int NOT NULL,
                       last_updated timestamp NOT NULL,
-                      LOCATION POINT NOT NULL,
-                      `driver_status` ENUM('NOT_BOOKED', 'ASSIGNED', 'ON_THE_WAY', 'CANCELLED', 'OFFLINE'));
+                      location POINT,
+                      `driver_status` ENUM('NOT_BOOKED', 'ASSIGNED', 'WAIT_FOR_CONFIRMATION', 'ON_THE_WAY', 'OFFLINE'));
 
 
 CREATE TABLE transportation_type(id int PRIMARY KEY AUTO_INCREMENT,
@@ -58,7 +58,8 @@ CREATE TABLE `ride_transaction`(id bigint PRIMARY KEY AUTO_INCREMENT,
                                 customer_id bigint NOT NULL,
                                 driver_id bigint NOT NULL,
                                 `start_time` timestamp NOT NULL,
-                                `end_time` timestamp NOT NULL);
+                                `end_time` timestamp NOT NULL,
+                                `ride_transaction_status` ENUM('ASSIGNED', 'ON_THE_WAY', 'CANCELLED', 'FINISHED') NOT NULL);
 
 
 ALTER TABLE `driver` ADD CONSTRAINT transportation_type_driver_pk

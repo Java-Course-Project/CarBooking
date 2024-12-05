@@ -4,7 +4,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -17,6 +16,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.duyvu.carbooking.model.DriverStatus;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.locationtech.jts.geom.Point;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -31,11 +31,10 @@ public class Driver extends BaseUser {
 	private String driverLicense;
 
 	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "transportation_type_id", nullable = false)
 	private TransportationType transportationType;
 
-	@NotNull
 	@Column(name = "last_updated", nullable = false)
 	@UpdateTimestamp
 	private Instant lastUpdated;
@@ -45,15 +44,11 @@ public class Driver extends BaseUser {
 	@Enumerated(EnumType.STRING)
 	private DriverStatus driverStatus;
 
+	@Column(name = "location", columnDefinition = "point")
+	private Point location;
+
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return List.of(new SimpleGrantedAuthority("ROLE_DRIVER"));
 	}
-
-/*
- TODO [Reverse Engineering] create field to map the 'LOCATION' column
- Available actions: Define target Java type | Uncomment as is | Remove column mapping
-    @Column(name = "LOCATION", columnDefinition = "point not null")
-    private Object location;
-*/
 }

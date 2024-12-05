@@ -15,5 +15,4 @@ public class DriverRequest extends BaseUserRequest {
 	private Long transportationTypeId;
 
 	private String driverLicense;
-
 }
