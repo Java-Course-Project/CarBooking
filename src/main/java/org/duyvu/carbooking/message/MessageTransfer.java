@@ -33,7 +33,7 @@ public class MessageTransfer {
 		return queue.poll();
 	}
 
-	public Message<?> receive(String topic, Function<String, String> filter, long timeout) throws TimeoutException, InterruptedException {
+	public Message<?> receive(String topic, Function<String, String> filter, long timeout) throws InterruptedException {
 		PriorityBlockingQueue<Message<?>> queue = getOrInit(topic);
 		synchronized (queue) {
 			Instant startTime = Instant.now();
@@ -59,10 +59,10 @@ public class MessageTransfer {
 					return message;
 				}
 				if (Duration.between(startTime, Instant.now()).getSeconds() > timeout) {
-					throw new TimeoutException();
+					return null;
 				}
 				// TODO: sleep
-				Thread.sleep(100);
+				Thread.sleep(1000);
 			}
 		}
 	}

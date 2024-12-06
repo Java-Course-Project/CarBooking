@@ -54,4 +54,12 @@ public class DriverController {
 	public ResponseEntity<Long> updateLocation(@PathVariable("driver_id") Long id, @RequestBody @Valid Coordinate coordinate) {
 		return ResponseEntity.ok(driverService.updateLocation(id, coordinate));
 	}
+
+	@PostMapping("/{driver_id}/confirm")
+	@PreAuthorize("hasAnyRole('DRIVER', 'ADMIN')")
+	public ResponseEntity<Long> confirmWaitingRideTransaction(@PathVariable("driver_id") Long driverId,
+															  @RequestBody boolean isConfirmed) {
+		return ResponseEntity.ok(driverService.confirmWaitingRideTransaction(driverId, isConfirmed));
+	}
+
 }

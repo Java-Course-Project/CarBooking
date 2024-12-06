@@ -1,5 +1,5 @@
 package org.duyvu.carbooking.model;
 
 public enum RideTransactionStatus {
-	ASSIGNED, ON_THE_WAY, CANCELLED, FINISHED
+	WAIT_FOR_CONFIRMATION, ASSIGNED, ON_THE_WAY, CANCELLED, FINISHED
 }

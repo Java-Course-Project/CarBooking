@@ -12,8 +12,11 @@ import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import org.duyvu.carbooking.model.DriverStatus;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.locationtech.jts.geom.Point;
@@ -24,6 +27,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 @Setter
 @Entity
 @Table(name = "driver", schema = "car_booking")
+@SuperBuilder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Driver extends BaseUser {
 	@Size(max = 128)
 	@NotNull

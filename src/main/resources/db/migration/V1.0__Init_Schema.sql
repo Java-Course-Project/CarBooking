@@ -59,7 +59,8 @@ CREATE TABLE `ride_transaction`(id bigint PRIMARY KEY AUTO_INCREMENT,
                                 driver_id bigint NOT NULL,
                                 `start_time` timestamp NOT NULL,
                                 `end_time` timestamp NOT NULL,
-                                `ride_transaction_status` ENUM('ASSIGNED', 'ON_THE_WAY', 'CANCELLED', 'FINISHED') NOT NULL);
+                                `ride_transaction_status` ENUM('ASSIGNED', 'WAIT_FOR_CONFIRMATION', 'ON_THE_WAY', 'CANCELLED', 'FINISHED')
+                                    NOT NULL);
 
 
 ALTER TABLE `driver` ADD CONSTRAINT transportation_type_driver_pk

@@ -5,7 +5,7 @@ import org.duyvu.carbooking.model.response.RideTransactionResponse;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@org.mapstruct.Mapper()
+@org.mapstruct.Mapper(uses = PointToCoordinateMapper.class)
 public interface RideTransactionToRideTransactionResponseMapper extends Mapper<RideTransaction, RideTransactionResponse> {
 	RideTransactionToRideTransactionResponseMapper INSTANCE = Mappers.getMapper(RideTransactionToRideTransactionResponseMapper.class);
 

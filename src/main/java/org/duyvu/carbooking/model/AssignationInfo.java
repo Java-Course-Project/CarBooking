@@ -18,4 +18,6 @@ public class AssignationInfo {
 	private Long driverId;
 
 	private AssignationStatus assignationStatus;
+
+	private Long rideTransactionId;
 }

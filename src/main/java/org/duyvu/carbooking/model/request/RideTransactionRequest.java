@@ -1,5 +1,6 @@
 package org.duyvu.carbooking.model.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,11 +14,15 @@ import org.locationtech.jts.geom.Coordinate;
 @NoArgsConstructor
 @Builder
 public class RideTransactionRequest {
+	@JsonProperty("customer_id")
 	private Long customerId;
 
+	@JsonProperty("driver_id")
 	private Long driverId;
 
+	@JsonProperty("start_location")
 	private Coordinate startLocation;
 
+	@JsonProperty("destination_location")
 	private Coordinate destinationLocation;
 }

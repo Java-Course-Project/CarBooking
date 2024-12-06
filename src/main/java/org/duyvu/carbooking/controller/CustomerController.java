@@ -1,5 +1,6 @@
 package org.duyvu.carbooking.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.duyvu.carbooking.model.request.CustomerRequest;
 import org.duyvu.carbooking.model.response.CustomerResponse;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,13 +37,13 @@ public class CustomerController {
 
 	@PostMapping("")
 	@PreAuthorize("hasAnyRole('DRIVER', 'ADMIN')")
-	public ResponseEntity<Long> save(CustomerRequest request) {
+	public ResponseEntity<Long> save(@RequestBody @Valid CustomerRequest request) {
 		return ResponseEntity.ok(customerService.save(request));
 	}
 
 	@PutMapping("/{customer_id}")
 	@PreAuthorize("hasRole('ADMIN') OR (hasRole('CUSTOMER') AND authentication.credentials == id)")
-	public ResponseEntity<Long> update(@PathVariable("customer_id") Long id, CustomerRequest request) {
+	public ResponseEntity<Long> update(@PathVariable("customer_id") Long id, @RequestBody @Valid CustomerRequest request) {
 		return ResponseEntity.ok(customerService.update(id, request));
 	}
 }

@@ -3,12 +3,14 @@ package org.duyvu.carbooking.service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.duyvu.carbooking.entity.Driver;
+import org.duyvu.carbooking.mapper.CoordinateToPointMapper;
 import org.duyvu.carbooking.mapper.DriverRequestToDriverMapper;
 import org.duyvu.carbooking.mapper.DriverToDriverResponseMapper;
 import org.duyvu.carbooking.model.DriverStatus;
 import org.duyvu.carbooking.model.request.DriverRequest;
 import org.duyvu.carbooking.model.response.DriverResponse;
 import org.duyvu.carbooking.repository.DriverRepository;
+import org.duyvu.carbooking.utils.locking.DistributedUtils;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.data.domain.Page;
@@ -26,12 +28,14 @@ public class DriverService {
 
 	private final GeometryFactory factory;
 
+	private final DistributedUtils distributedUtils;
+
 	public Page<DriverResponse> findAll(Pageable pageable) {
 		return driverRepository.findAll(pageable).map(DriverToDriverResponseMapper.INSTANCE::map);
 	}
 
 	public DriverResponse findById(Long id) {
-		if (driverRepository.existsById(id)) {
+		if (!driverRepository.existsById(id)) {
 			throw new EntityNotFoundException("Driver not found");
 		}
 
@@ -66,9 +70,9 @@ public class DriverService {
 	}
 
 	@Transactional
-	public Long updateLocation(Long id, Coordinate coordinate) {
+	public Long updateLocation(Long id, Coordinate location) {
 		Driver driver = driverRepository.findByIdThenLock(id).orElseThrow(() -> new EntityNotFoundException("Driver not found"));
-		driver.setLocation(factory.createPoint(coordinate));
+		driver.setLocation(CoordinateToPointMapper.INSTANCE.map(location, factory));
 		if (DriverStatus.OFFLINE.equals(driver.getDriverStatus())) {
 			driver.setDriverStatus(DriverStatus.NOT_BOOKED);
 		}
@@ -84,6 +88,14 @@ public class DriverService {
 	
 	@Transactional
 	public Long findShortestAvailableDriver(Coordinate startLocation) {
-		return driverRepository.findShortestAvailableDriverId(factory.createPoint(startLocation)).orElse(null);
+		return driverRepository.findShortestAvailableDriverId(CoordinateToPointMapper.INSTANCE.map(startLocation, factory)).orElse(null);
+	}
+
+	@Transactional
+	public Long confirmWaitingRideTransaction(Long id, boolean isConfirmed) {
+		// Can't direct update driver here because of other process is holding lock to driver
+		distributedUtils.set("Booking-%s".formatted(id), isConfirmed);
+		distributedUtils.unlock("Booking-%s".formatted(id));
+		return id;
 	}
 }

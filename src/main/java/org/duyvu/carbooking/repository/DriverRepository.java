@@ -17,14 +17,15 @@ public interface DriverRepository extends JpaRepository<Driver, Long>, JpaSpecif
 	Optional<Driver> findByIdThenLock(@Param("id") Long id);
 
 	@Query("""
-	SELECT d.id FROM Driver d JOIN (
-	SELECT rt.driver.id AS driver_id, COALESCE(AVG(r.rate), 0) AS rate_point
-	FROM Review r
-	JOIN RideTransaction rt ON r.rideTransaction.id = rt.id
-	GROUP BY driver_id
+	SELECT d.id FROM Driver d
+	LEFT JOIN (
+		SELECT rt.driver.id AS driverId, COALESCE(AVG(r.rate), 0) AS ratePoint
+		FROM Review r
+		LEFT JOIN RideTransaction rt ON r.rideTransaction.id = rt.id
+		GROUP BY driverId
 	 ) rate
-	 ON d.id = rate.driver_id
-	 WHERE d.driverStatus = 'NOT_BOOKED' ORDER BY ST_Distance(d.location, ST_GeomFromText('POINT(2 2)')) + rate.rate_point LIMIT 1
+	 ON d.id = rate.driverId
+	 WHERE d.driverStatus = 'NOT_BOOKED' ORDER BY ST_Distance(d.location, ST_GeomFromText('POINT(2 2)')) + rate.ratePoint LIMIT 1
 	""")
 	@Lock(PESSIMISTIC_WRITE)
 	Optional<Long> findShortestAvailableDriverId(@Param("startLocation") Point startLocation);

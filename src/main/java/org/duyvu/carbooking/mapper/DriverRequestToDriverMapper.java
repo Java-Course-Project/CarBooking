@@ -2,10 +2,11 @@ package org.duyvu.carbooking.mapper;
 
 import org.duyvu.carbooking.entity.Driver;
 import org.duyvu.carbooking.model.request.DriverRequest;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@org.mapstruct.Mapper
+@org.mapstruct.Mapper(builder = @Builder(disableBuilder = true))
 public interface DriverRequestToDriverMapper extends Mapper<DriverRequest, Driver> {
 	DriverRequestToDriverMapper INSTANCE = Mappers.getMapper(DriverRequestToDriverMapper.class);
 
