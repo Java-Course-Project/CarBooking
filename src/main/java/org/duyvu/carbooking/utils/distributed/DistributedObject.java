@@ -1,5 +1,6 @@
 package org.duyvu.carbooking.utils.distributed;
 
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
@@ -19,6 +20,6 @@ public class DistributedObject {
 
 	public <T> void set(String name, T value) {
 		RBucket<T> bucket = client.getBucket(OBJECT_KEY_PREFIX + name);
-		bucket.set(value);
+		bucket.set(value, Duration.ofSeconds(5));
 	}
 }
