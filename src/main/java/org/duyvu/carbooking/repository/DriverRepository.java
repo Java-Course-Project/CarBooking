@@ -19,17 +19,26 @@ public interface DriverRepository extends JpaRepository<Driver, Long>, JpaSpecif
 	Optional<Driver> findByIdThenLock(@Param("id") Long id);
 
 	@Query("""
-	SELECT d.id FROM Driver d
-	LEFT JOIN (
-		SELECT rt.driver.id AS driverId, (5 - COALESCE(AVG(r.rate), 0)) AS ratePoint
-		FROM Review r
-		LEFT JOIN RideTransaction rt ON r.rideTransaction.id = rt.id
-		GROUP BY driverId
-	 ) rate
-	ON d.id = rate.driverId
-	WHERE d.driverStatus = 'NOT_BOOKED'
-	GROUP BY d.id
-	ORDER BY MIN(ST_Distance(d.location, :startLocation) + COALESCE(rate.ratePoint, 0)) LIMIT 1
+			SELECT tmp.id AS id
+			FROM (
+				  SELECT d.id AS id
+				  FROM Driver d
+				  LEFT JOIN (
+					  SELECT rt.driver.id AS driverId,
+							 (5 - COALESCE(AVG(r.rate), 0)) AS ratePoint
+					  FROM Review r
+					  LEFT JOIN RideTransaction rt
+					  ON r.rideTransaction.id = rt.id
+					  GROUP BY rt.driver.id
+				  ) rate
+				  ON d.id = rate.driverId
+				  WHERE d.driverStatus = 'NOT_BOOKED'
+				  GROUP BY d.id
+				  ORDER BY
+					  MIN(ST_Distance(d.location, :startLocation) + COALESCE(rate.ratePoint, 0)),
+					  d.id
+				  LIMIT 1
+			  ) tmp
 	""")
 	@Lock(PESSIMISTIC_WRITE)
 	Optional<Long> findShortestAvailableDriverId(@Param("startLocation") Point startLocation);
