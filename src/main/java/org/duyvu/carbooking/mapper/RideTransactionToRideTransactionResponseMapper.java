@@ -10,8 +10,8 @@ public interface RideTransactionToRideTransactionResponseMapper extends Mapper<R
 	RideTransactionToRideTransactionResponseMapper INSTANCE = Mappers.getMapper(RideTransactionToRideTransactionResponseMapper.class);
 
     @Mapping(target = "driverId",
-             expression = "java(rideTransaction.getCustomer().getId())")
-    @Mapping(target = "customerId", expression = "java(rideTransaction.getDriver().getId())")
+             expression = "java(rideTransaction.getDriver().getId())")
+    @Mapping(target = "customerId", expression = "java(rideTransaction.getCustomer().getId())")
     @Override
     RideTransactionResponse map(RideTransaction rideTransaction);
 }

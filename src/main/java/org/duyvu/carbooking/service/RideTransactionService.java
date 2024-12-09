@@ -6,9 +6,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.duyvu.carbooking.entity.Customer_;
 import org.duyvu.carbooking.entity.Driver_;
@@ -25,6 +23,7 @@ import org.duyvu.carbooking.model.response.RideTransactionResponse;
 import org.duyvu.carbooking.repository.DriverRepository;
 import org.duyvu.carbooking.repository.FareRepository;
 import org.duyvu.carbooking.repository.RideTransactionRepository;
+import org.duyvu.carbooking.utils.distributed.DistributedObject;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.springframework.data.domain.Page;
@@ -43,6 +42,8 @@ public class RideTransactionService {
 	private final FareRepository fareRepository;
 
 	private final GeometryFactory geometryFactory;
+
+	private final DistributedObject distributedObject;
 
 	public static class SpecialDayTime {
 		public static final Set<LocalDate> HOLIDAYS
@@ -116,13 +117,11 @@ public class RideTransactionService {
 	public RideTransactionResponse findCurrentWaitingTransaction(Long driverId, long timeout) throws InterruptedException {
 		Instant startTime = Instant.now();
 		while (Duration.between(startTime, Instant.now()).compareTo(Duration.ofSeconds(timeout)) < 0) {
-			Optional<RideTransaction> rideTransaction = rideTransactionRepository.findCurrentWaitingTransaction(driverId,
-																												RideTransactionStatus.WAIT_FOR_CONFIRMATION);
-
-			if (rideTransaction.isPresent()) {
-				return RideTransactionToRideTransactionResponseMapper.INSTANCE.map(rideTransaction.get());
+			// Can't select from db because ride transaction is in middle of transaction - changes can't be seen
+			RideTransactionResponse response = distributedObject.get("Booking-ride-transaction-%s".formatted(driverId));
+			if (response != null) {
+				return response;
 			}
-			TimeUnit.SECONDS.sleep(5);
 		}
 		return null;
 	}

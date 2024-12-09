@@ -68,7 +68,8 @@ public class CustomerService {
 	@Transactional(rollbackFor = Exception.class)
 	Long findIdBy(Long id, CustomerStatus status) {
 		return customerRepository.findByIdAndStatusThenLock(id, status)
-								 .orElseThrow(() -> new EntityNotFoundException("Customer not found or not in %s".formatted(status))).getId();
+								 .orElseThrow(() -> new EntityNotFoundException("Customer %s not found or not in %s".formatted(id,
+																															   status))).getId();
 
 	}
 }

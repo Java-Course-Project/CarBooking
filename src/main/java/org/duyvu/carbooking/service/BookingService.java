@@ -97,6 +97,7 @@ public class BookingService {
 																				   .build());
 
 		rideTransactionService.updateStatus(rideTransactionId, RideTransactionStatus.WAIT_FOR_CONFIRMATION);
+		distributedObject.set("Booking-ride-transaction-%s".formatted(id), rideTransactionService.findById(rideTransactionId));
 
 		// Wait for confirmation from driver.
 		log.debug("Waiting for driver {} to confirm", id);
