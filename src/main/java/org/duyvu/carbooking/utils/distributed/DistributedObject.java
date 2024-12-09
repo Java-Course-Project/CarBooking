@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 public class DistributedObject {
 	private final RedissonClient client;
 
-
 	private static final String OBJECT_KEY_PREFIX = "object_";
 
 	public <T> T get(String name) {
