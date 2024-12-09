@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 public class DistributedRateLimiter {
 	private final RedissonClient client;
 
-	public void acquirePermitForRateLimiter(Duration timeout) {
+	public boolean tryAcquire(Duration timeout) {
 		RRateLimiter rateLimiter = client.getRateLimiter("rate-limiter");
 		rateLimiter.trySetRate(RateType.OVERALL, 100, Duration.ofSeconds(1));
-		rateLimiter.tryAcquire(timeout);
+		return rateLimiter.tryAcquire(timeout);
 	}
 }
