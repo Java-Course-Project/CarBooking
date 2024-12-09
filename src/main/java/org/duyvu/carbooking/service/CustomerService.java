@@ -57,12 +57,14 @@ public class CustomerService {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
+	@SuppressWarnings("UnusedReturnValue")
 	Long updateStatus(Long id, CustomerStatus status) {
 		Customer customer = customerRepository.findByIdThenLock(id).orElseThrow(() -> new EntityNotFoundException("Driver not found"));
 		customer.setCustomerStatus(status);
 		return customerRepository.save(customer).getId();
 	}
 
+	@SuppressWarnings("SameParameterValue")
 	@Transactional(rollbackFor = Exception.class)
 	Long findIdBy(Long id, CustomerStatus status) {
 		return customerRepository.findByIdAndStatusThenLock(id, status)

@@ -1,6 +1,5 @@
 package org.duyvu.carbooking.message;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.jms.JMSException;
 import jakarta.validation.Valid;
 import java.time.Duration;
@@ -29,8 +28,6 @@ public class MessageTransfer {
 	}
 
 	private final JmsTemplate jmsTemplate;
-
-	private final ObjectMapper objectMapper;
 
 	public void send(Topic topic, @Valid Message<?> msg) {
 		final long ttl = 30000L;
