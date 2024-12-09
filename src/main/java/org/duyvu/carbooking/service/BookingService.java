@@ -16,7 +16,8 @@ import org.duyvu.carbooking.model.Message;
 import org.duyvu.carbooking.model.RideTransactionStatus;
 import org.duyvu.carbooking.model.request.BookingRequest;
 import org.duyvu.carbooking.model.request.RideTransactionRequest;
-import org.duyvu.carbooking.utils.locking.DistributedUtils;
+import org.duyvu.carbooking.utils.distributed.DistributedLock;
+import org.duyvu.carbooking.utils.distributed.DistributedObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +36,9 @@ public class BookingService {
 
 	private final DriverService driverService;
 
-	private final DistributedUtils distributedUtils;
+	private final DistributedLock distributedLock;
+
+	private final DistributedObject distributedObject;
 
 	private static final Duration TIMEOUT = Duration.ofSeconds(60);
 
@@ -97,13 +100,13 @@ public class BookingService {
 
 		// Wait for confirmation from driver.
 		log.debug("Waiting for driver {} to confirm", id);
-		distributedUtils.set("Booking-%s".formatted(id), false);
-		distributedUtils.wait("Booking-%s".formatted(id), Duration.ofSeconds(10));
+		distributedObject.set("Booking-%s".formatted(id), false);
+		distributedLock.wait("Booking-%s".formatted(id), Duration.ofSeconds(10));
 
-		log.debug("Driver {} confirmed {}", id, distributedUtils.get("Booking-%s".formatted(id)));
+		log.debug("Driver {} confirmed {}", id, distributedObject.get("Booking-%s".formatted(id)));
 		AssignationInfo.AssignationStatus assignationStatus =
 				// if driver status = WAIT_FOR_CONFIRMATION then driver not confirmed or denied
-				distributedUtils.get("Booking-%s".formatted(id)) ? CONFIRMED : DENIED;
+				distributedObject.get("Booking-%s".formatted(id)) ? CONFIRMED : DENIED;
 		log.debug("Driver confirmation status {}", assignationStatus);
 
 		return AssignationInfo.builder()

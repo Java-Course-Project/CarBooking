@@ -20,7 +20,8 @@ import org.duyvu.carbooking.model.response.DriverResponse;
 import org.duyvu.carbooking.repository.CustomerRepository;
 import org.duyvu.carbooking.repository.DriverRepository;
 import org.duyvu.carbooking.repository.RideTransactionRepository;
-import org.duyvu.carbooking.utils.locking.DistributedUtils;
+import org.duyvu.carbooking.utils.distributed.DistributedLock;
+import org.duyvu.carbooking.utils.distributed.DistributedObject;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.data.domain.Page;
@@ -44,7 +45,9 @@ public class DriverService {
 
 	private final GeometryFactory factory;
 
-	private final DistributedUtils distributedUtils;
+	private final DistributedLock distributedLock;
+
+	private final DistributedObject distributedObject;
 
 	public Page<DriverResponse> findAll(Pageable pageable) {
 		return driverRepository.findAll(pageable).map(DriverToDriverResponseMapper.INSTANCE::map);
@@ -108,8 +111,8 @@ public class DriverService {
 	public Long confirmWaitingRideTransaction(Long id, boolean isConfirmed) {
 		// Can't direct update driver here because of other process is holding lock to driver
 		log.debug("Driver {} confirm {}", id, isConfirmed);
-		distributedUtils.set("Booking-%s".formatted(id), isConfirmed);
-		distributedUtils.await("Booking-%s".formatted(id));
+		distributedObject.set("Booking-%s".formatted(id), isConfirmed);
+		distributedLock.await("Booking-%s".formatted(id));
 		return id;
 	}
 
