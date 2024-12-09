@@ -1,6 +1,5 @@
 package org.duyvu.carbooking.mapper;
 
-import java.util.List;
 import org.duyvu.carbooking.model.BookingInfo;
 import org.duyvu.carbooking.model.request.BookingRequest;
 import org.mapstruct.factory.Mappers;
@@ -9,5 +8,5 @@ import org.mapstruct.factory.Mappers;
 public interface BookingRequestToBookingInfoMapper extends Mapper<BookingRequest, BookingInfo> {
 	BookingRequestToBookingInfoMapper INSTANCE = Mappers.getMapper(BookingRequestToBookingInfoMapper.class);
 
-	BookingInfo map(BookingRequest bookingRequest, List<Long> blacklistDriverIds);
+	BookingInfo map(BookingRequest bookingRequest);
 }

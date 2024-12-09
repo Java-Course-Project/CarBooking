@@ -26,9 +26,9 @@ public class DriverController {
 	private final DriverService driverService;
 
 	@GetMapping("/{driver_id}")
-	@PreAuthorize("hasRole('ADMIN') OR (hasRole('DRIVER') AND authentication.credentials == id)")
-	public ResponseEntity<DriverResponse> findById(@PathVariable("driver_id") Long id) {
-		return ResponseEntity.ok(driverService.findById(id));
+	@PreAuthorize("hasRole('ADMIN') OR (hasRole('DRIVER') AND @jwtUtils.extractId(authentication.credentials).equals(#driverId))")
+	public ResponseEntity<DriverResponse> findById(@PathVariable("driver_id") Long driverId) {
+		return ResponseEntity.ok(driverService.findById(driverId));
 	}
 
 	@GetMapping("")
@@ -44,22 +44,34 @@ public class DriverController {
 	}
 
 	@PutMapping("/{driver_id}")
-	@PreAuthorize("hasRole('ADMIN') OR (hasRole('DRIVER') AND authentication.credentials == id)")
-	public ResponseEntity<Long> update(@PathVariable("driver_id") Long id, @RequestBody @Valid DriverRequest request) {
-		return ResponseEntity.ok(driverService.update(id, request));
+	@PreAuthorize("hasRole('ADMIN') OR (hasRole('DRIVER') AND @jwtUtils.extractId(authentication.credentials).equals(#driverId))")
+	public ResponseEntity<Long> update(@PathVariable("driver_id") Long driverId, @RequestBody @Valid DriverRequest request) {
+		return ResponseEntity.ok(driverService.update(driverId, request));
 	}
 
 	@PatchMapping("/{driver_id}/location")
-	@PreAuthorize("hasRole('ADMIN') OR (hasRole('DRIVER') AND authentication.credentials == id)")
-	public ResponseEntity<Long> updateLocation(@PathVariable("driver_id") Long id, @RequestBody @Valid Coordinate coordinate) {
-		return ResponseEntity.ok(driverService.updateLocation(id, coordinate));
+	@PreAuthorize("hasRole('ADMIN') OR (hasRole('DRIVER') AND @jwtUtils.extractId(authentication.credentials).equals(#driverId))")
+	public ResponseEntity<Long> updateLocation(@PathVariable("driver_id") Long driverId, @RequestBody @Valid Coordinate coordinate) {
+		return ResponseEntity.ok(driverService.updateLocation(driverId, coordinate));
 	}
 
 	@PostMapping("/{driver_id}/confirm")
-	@PreAuthorize("hasAnyRole('DRIVER', 'ADMIN')")
+	@PreAuthorize("hasRole('ADMIN') OR (hasRole('DRIVER') AND @jwtUtils.extractId(authentication.credentials).equals(#driverId))")
 	public ResponseEntity<Long> confirmWaitingRideTransaction(@PathVariable("driver_id") Long driverId,
 															  @RequestBody boolean isConfirmed) {
 		return ResponseEntity.ok(driverService.confirmWaitingRideTransaction(driverId, isConfirmed));
+	}
+
+	@PostMapping("/{driver_id}/pick")
+	@PreAuthorize("hasRole('ADMIN') OR (hasRole('DRIVER') AND @jwtUtils.extractId(authentication.credentials).equals(#driverId))")
+	public ResponseEntity<Long> pickRide(@PathVariable("driver_id") Long driverId) {
+		return ResponseEntity.ok(driverService.pickRide(driverId));
+	}
+
+	@PostMapping("/{driver_id}/finish")
+	@PreAuthorize("hasRole('ADMIN') OR (hasRole('DRIVER') AND @jwtUtils.extractId(authentication.credentials).equals(#driverId))")
+	public ResponseEntity<Long> finishRide(@PathVariable("driver_id") Long driverId) {
+		return ResponseEntity.ok(driverService.finishRide(driverId));
 	}
 
 }

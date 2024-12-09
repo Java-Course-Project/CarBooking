@@ -1,6 +1,6 @@
 package org.duyvu.carbooking.model;
 
-import java.util.List;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,7 +11,7 @@ import org.locationtech.jts.geom.Coordinate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class BookingInfo {
+public class BookingInfo implements Serializable {
 	private Long customerId;
 
 	private Coordinate startLocation;
@@ -19,6 +19,4 @@ public class BookingInfo {
 	private Coordinate destinationLocation;
 
 	private Long transportationTypeId;
-
-	private List<Long> blacklistDriverIds;
 }

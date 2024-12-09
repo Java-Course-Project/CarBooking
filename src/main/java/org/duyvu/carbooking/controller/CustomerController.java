@@ -24,7 +24,7 @@ public class CustomerController {
 	private final CustomerService customerService;
 
 	@GetMapping("/{customer_id}")
-	@PreAuthorize("hasRole('ADMIN') OR (hasRole('CUSTOMER') AND authentication.credentials == id)")
+	@PreAuthorize("hasRole('ADMIN') OR (hasRole('CUSTOMER') AND @jwtUtils.extractId(authentication.credentials).equals(#id))")
 	public ResponseEntity<CustomerResponse> findById(@PathVariable("customer_id") Long id) {
 		return ResponseEntity.ok(customerService.findBy(id));
 	}
@@ -42,7 +42,7 @@ public class CustomerController {
 	}
 
 	@PutMapping("/{customer_id}")
-	@PreAuthorize("hasRole('ADMIN') OR (hasRole('CUSTOMER') AND authentication.credentials == id)")
+	@PreAuthorize("hasRole('ADMIN') OR (hasRole('CUSTOMER') AND @jwtUtils.extractId(authentication.credentials).equals(#id))")
 	public ResponseEntity<Long> update(@PathVariable("customer_id") Long id, @RequestBody @Valid CustomerRequest request) {
 		return ResponseEntity.ok(customerService.update(id, request));
 	}

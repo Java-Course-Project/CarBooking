@@ -58,7 +58,7 @@ CREATE TABLE `ride_transaction`(id bigint PRIMARY KEY AUTO_INCREMENT,
                                 customer_id bigint NOT NULL,
                                 driver_id bigint NOT NULL,
                                 `start_time` timestamp NOT NULL,
-                                `end_time` timestamp NOT NULL,
+                                `end_time` timestamp,
                                 `ride_transaction_status` ENUM('ASSIGNED', 'WAIT_FOR_CONFIRMATION', 'ON_THE_WAY', 'CANCELLED', 'FINISHED')
                                     NOT NULL);
 

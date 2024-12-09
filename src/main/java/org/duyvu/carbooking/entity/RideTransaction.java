@@ -13,7 +13,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.duyvu.carbooking.model.RideTransactionStatus;
 import org.hibernate.annotations.CreationTimestamp;
@@ -22,6 +25,9 @@ import org.locationtech.jts.geom.Point;
 @Getter
 @Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "ride_transaction", schema = "car_booking")
 public class RideTransaction {
 	@Id
@@ -38,8 +44,7 @@ public class RideTransaction {
 	@JoinColumn(name = "customer_id", nullable = false)
 	private Customer customer;
 
-	@NotNull
-	@Column(name = "start_time", nullable = false)
+	@Column(name = "start_time")
 	@CreationTimestamp
 	private Instant startTime;
 
@@ -48,7 +53,6 @@ public class RideTransaction {
 	@JoinColumn(name = "driver_id", nullable = false)
 	private Driver driver;
 
-	@NotNull
 	@Column(name = "end_time", nullable = false)
 	@CreationTimestamp
 	private Instant endTime;

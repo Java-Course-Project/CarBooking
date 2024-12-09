@@ -1,69 +1,60 @@
 package org.duyvu.carbooking.message;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.jms.JMSException;
+import jakarta.validation.Valid;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.duyvu.carbooking.model.Message;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessagePostProcessor;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
+@RequiredArgsConstructor
 public class MessageTransfer {
-	private final Map<String, PriorityBlockingQueue<Message<?>>> queueMap = new ConcurrentHashMap<>();
 
-	private static final int MAX_CAPACITY = 10000000;
+	public enum Topic {
+		CUSTOMER_BOOKING("CUSTOMER_BOOKING");
 
-	private PriorityBlockingQueue<Message<?>> getOrInit(String topic) {
-		queueMap.putIfAbsent(topic, new PriorityBlockingQueue<>(MAX_CAPACITY, Comparator.comparingInt(Message::getPriority)));
-		return queueMap.get(topic);
+		private final String value;
+
+		Topic(String value) {
+			this.value = value;
+		}
 	}
 
-	public void send(String topic, Message<?> message) {
-		PriorityBlockingQueue<Message<?>> queue = getOrInit(topic);
-		queue.add(message);
-		// TODO: notify listener when new message are arrived
+	private final JmsTemplate jmsTemplate;
+
+	private final ObjectMapper objectMapper;
+
+	public void send(Topic topic, @Valid Message<?> msg) {
+		final long ttl = 30000L;
+		jmsTemplate.convertAndSend(topic.value, msg, new MessagePostProcessor() {
+			@Override
+			@NonNull
+			public jakarta.jms.Message postProcessMessage(@NonNull jakarta.jms.Message message) throws JMSException {
+				message.setJMSPriority(msg.getPriority());
+				message.setJMSExpiration(System.currentTimeMillis() + ttl);
+				message.setStringProperty("x_custom_id",msg.getId().toString());
+				return message;
+			}
+		});
 	}
 
-	public Message<?> receive(String topic) {
-		PriorityBlockingQueue<Message<?>> queue = getOrInit(topic);
-		return queue.poll();
-	}
-
-	public Message<?> receive(String topic, Function<String, String> filter, long timeout) throws InterruptedException {
-		PriorityBlockingQueue<Message<?>> queue = getOrInit(topic);
-		synchronized (queue) {
-			Instant startTime = Instant.now();
-			while (true) {
-				Message<?> message = queue.stream().filter(msg -> {
-					for (Map.Entry<String, String> values :  msg.getHeaders().entrySet()) {
-						if (filter.apply(values.getKey()).equals(values.getValue())) {
-							return true;
-						}
-					}
-					return false;
-				}).findFirst().orElse(null);
-
-				if (message != null) {
-					queue.removeIf(msg -> {
-						for (Map.Entry<String, String> values :  msg.getHeaders().entrySet()) {
-							if (filter.apply(values.getKey()).equals(values.getValue())) {
-								return true;
-							}
-						}
-						return false;
-					});
-					return message;
-				}
-				if (Duration.between(startTime, Instant.now()).getSeconds() > timeout) {
-					return null;
-				}
-				// TODO: sleep
-				Thread.sleep(1000);
+	@SuppressWarnings("unchecked")
+	public <T> Message<T> receive(Topic topic, String selector, Duration timeout) {
+		Instant start = Instant.now();
+		while (Duration.between(start, Instant.now()).compareTo(timeout) < 0) {
+			Message<T> message = (Message<T>) jmsTemplate.receiveSelectedAndConvert(topic.value, selector);
+			if (message != null) {
+				return message;
 			}
 		}
+		return null;
 	}
 }

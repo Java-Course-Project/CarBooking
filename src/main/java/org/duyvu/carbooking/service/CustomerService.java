@@ -26,10 +26,6 @@ public class CustomerService {
 	}
 
 	public CustomerResponse findBy(Long id) {
-		if (customerRepository.existsById(id)) {
-			throw new EntityNotFoundException("Customer not found");
-		}
-
 		return CustomerToCustomerResponseMapper.INSTANCE.map(customerRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Customer not found")));
 	}
@@ -37,6 +33,7 @@ public class CustomerService {
 	@Transactional
 	public Long save(CustomerRequest request) {
 		Customer customer = CustomerRequestToCustomerMapper.INSTANCE.map(request);
+		customer.setPassword(passwordEncoder.encode(request.getPassword()));
 		customer.setCustomerStatus(CustomerStatus.NOT_BOOKED);
 		return customerRepository.save(customer).getId();
 	}
@@ -59,14 +56,14 @@ public class CustomerService {
         return customerRepository.save(customer).getId();
 	}
 
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	Long updateStatus(Long id, CustomerStatus status) {
 		Customer customer = customerRepository.findByIdThenLock(id).orElseThrow(() -> new EntityNotFoundException("Driver not found"));
 		customer.setCustomerStatus(status);
 		return customerRepository.save(customer).getId();
 	}
 
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	Long findIdBy(Long id, CustomerStatus status) {
 		return customerRepository.findByIdAndStatusThenLock(id, status)
 								 .orElseThrow(() -> new EntityNotFoundException("Customer not found or not in %s".formatted(status))).getId();

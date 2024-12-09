@@ -35,13 +35,11 @@ public class AdminController {
 		return ResponseEntity.ok(adminService.findAll(pageable));
 	}
 
-
 	@PostMapping("")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Long> save(@RequestBody @Valid AdminRequest adminRequest) {
 		return ResponseEntity.ok(adminService.save(adminRequest));
 	}
-
 
 	@PutMapping("/{admin_id}")
 	@PreAuthorize("hasRole('ADMIN')")

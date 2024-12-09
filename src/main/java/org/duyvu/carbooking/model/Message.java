@@ -1,7 +1,9 @@
 package org.duyvu.carbooking.model;
 
+import jakarta.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.time.Instant;
-import java.util.Map;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -11,9 +13,13 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Message<T> {
+public class Message<T> implements Serializable {
 	private T data;
+
 	private Instant timestamp;
-	private Map<String, String> headers;
+
+	@NotNull
+	private UUID id;
+
 	private int priority;
 }

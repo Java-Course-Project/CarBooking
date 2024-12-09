@@ -3,6 +3,7 @@ package org.duyvu.carbooking.mapper;
 import org.duyvu.carbooking.entity.RideTransaction;
 import org.duyvu.carbooking.model.request.RideTransactionRequest;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.mapstruct.Context;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
@@ -19,5 +20,7 @@ public interface RideTransactionRequestToRideTransactionMapper extends Mapper<Ri
 			 expression = "java(org.duyvu.carbooking.entity.Driver.builder().id(rideTransactionRequest.getDriverId()).build())")
 	@Mapping(target = "customer",
 			 expression = "java(org.duyvu.carbooking.entity.Customer.builder().id(rideTransactionRequest.getCustomerId()).build())")
-	RideTransaction map(RideTransactionRequest rideTransactionRequest, GeometryFactory factory);
+	@Mapping(target = "startLocation", source = "startLocation", qualifiedByName = "mapToPoint")
+	@Mapping(target = "destinationLocation", source = "destinationLocation", qualifiedByName = "mapToPoint")
+	RideTransaction map(RideTransactionRequest rideTransactionRequest, @Context GeometryFactory factory);
 }

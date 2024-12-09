@@ -1,11 +1,13 @@
 package org.duyvu.carbooking.configuration;
 
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.duyvu.carbooking.configuration.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -49,12 +51,16 @@ public class SecurityConfiguration {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider authenticationProvider) throws Exception {
 		http.csrf(AbstractHttpConfigurer::disable)
 			.cors(AbstractHttpConfigurer::disable)
-			.authorizeHttpRequests(req -> req.requestMatchers(WHITE_LIST_URLS)
+			.authorizeHttpRequests(req ->
+										   req.requestMatchers(WHITE_LIST_URLS)
+											 .permitAll()
+											 .dispatcherTypeMatchers(DispatcherType.ASYNC)
 											 .permitAll()
 											 .anyRequest()
 											 .authenticated())
 			.sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
 			.authenticationProvider(authenticationProvider)
+			.exceptionHandling(Customizer.withDefaults())
 			.addFilterBefore(authenticationJwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
