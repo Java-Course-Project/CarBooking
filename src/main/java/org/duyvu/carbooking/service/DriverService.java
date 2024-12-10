@@ -111,7 +111,7 @@ public class DriverService {
 	public Long confirmWaitingRideTransaction(Long id, boolean isConfirmed) {
 		// Can't direct update driver here because of other process is holding lock to driver
 		log.debug("Driver {} confirm {}", id, isConfirmed);
-		distributedObject.set("Booking-%s".formatted(id), isConfirmed);
+		distributedObject.set("Booking-%s".formatted(id), isConfirmed, Duration.ofSeconds(20));
 		distributedLock.await("Booking-%s".formatted(id));
 		return id;
 	}

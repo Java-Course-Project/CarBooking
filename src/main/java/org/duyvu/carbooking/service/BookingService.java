@@ -55,7 +55,7 @@ public class BookingService {
 		while (Duration.between(startTime, Instant.now()).compareTo(TIMEOUT) < 0) {
 			UUID key = UUID.randomUUID();
 			Message<BookingInfo> message = new Message<>(BookingRequestToBookingInfoMapper.INSTANCE.map(bookingRequest),
-														 Instant.now(), key, priority);
+														 Instant.now(), key, priority++);
 			messageTransfer.send(MessageTransfer.Topic.CUSTOMER_BOOKING, message);
 
 			// Wait for message to return
@@ -95,14 +95,15 @@ public class BookingService {
 																						   message.getData()
 																								  .getDestinationLocation())
 																				   .build());
-
+		Duration timeout = Duration.ofSeconds(10);
 		rideTransactionService.updateStatus(rideTransactionId, RideTransactionStatus.WAIT_FOR_CONFIRMATION);
-		distributedObject.set("Booking-ride-transaction-%s".formatted(id), rideTransactionService.findById(rideTransactionId));
+		distributedObject.set("Booking-ride-transaction-%s".formatted(id), rideTransactionService.findById(rideTransactionId),
+							  timeout.multipliedBy(2));
 
 		// Wait for confirmation from driver.
 		log.debug("Waiting for driver {} to confirm", id);
-		distributedObject.set("Booking-%s".formatted(id), false);
-		distributedLock.wait("Booking-%s".formatted(id), Duration.ofSeconds(10));
+		distributedObject.set("Booking-%s".formatted(id), false, timeout.multipliedBy(2));
+		distributedLock.wait("Booking-%s".formatted(id), timeout);
 
 		log.debug("Driver {} confirmed {}", id, distributedObject.get("Booking-%s".formatted(id)));
 		AssignationInfo.AssignationStatus assignationStatus =

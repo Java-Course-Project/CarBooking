@@ -18,8 +18,8 @@ public class DistributedObject {
 		return bucket.get();
 	}
 
-	public <T> void set(String name, T value) {
+	public <T> void set(String name, T value, Duration timeout) {
 		RBucket<T> bucket = client.getBucket(OBJECT_KEY_PREFIX + name);
-		bucket.set(value, Duration.ofSeconds(5));
+		bucket.set(value, timeout);
 	}
 }

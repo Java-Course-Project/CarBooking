@@ -1,12 +1,14 @@
 package org.duyvu.carbooking.message;
 
 import jakarta.jms.DeliveryMode;
+import jakarta.jms.JMSException;
 import jakarta.jms.MessageConsumer;
 import jakarta.jms.MessageProducer;
 import jakarta.jms.ObjectMessage;
 import jakarta.jms.Queue;
 import jakarta.validation.Valid;
 import java.time.Duration;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.duyvu.carbooking.model.Message;
@@ -38,10 +40,10 @@ public class MessageTransfer {
 			ObjectMessage message = session.createObjectMessage(msg);
 
 			// Set custom headers
-			message.setStringProperty("x_customer_id", msg.getId().toString());
+			message.setStringProperty("x_custom_id", msg.getId().toString());
 			producer.send(message, DeliveryMode.PERSISTENT, msg.getPriority(), ttl);
 			return null;
-		});
+		}, true);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -49,8 +51,14 @@ public class MessageTransfer {
 		return (Message<T>) jmsTemplate.execute(session -> {
 			Queue queue = session.createQueue(topic.value);
 			MessageConsumer consumer = session.createConsumer(queue, selector);
-
-			return consumer.receive(timeout.getSeconds()).getBody(Message.class);
-		});
+			return Optional.ofNullable(consumer.receive(timeout.getSeconds() * 1000))
+						   .map(e -> {
+							   try {
+								   return e.getBody(Message.class);
+							   } catch (JMSException ex) {
+								   throw new RuntimeException(ex);
+							   }
+						   }).orElse(null);
+		}, true);
 	}
 }
