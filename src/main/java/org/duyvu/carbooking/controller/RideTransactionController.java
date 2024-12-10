@@ -3,6 +3,7 @@ package org.duyvu.carbooking.controller;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.duyvu.carbooking.model.UserType;
+import org.duyvu.carbooking.model.response.BookingResponse;
 import org.duyvu.carbooking.model.response.RideTransactionResponse;
 import org.duyvu.carbooking.service.RideTransactionService;
 import org.springframework.data.domain.Page;
@@ -44,7 +45,8 @@ public class RideTransactionController {
 
 	@GetMapping("/current-waiting-transaction")
 	@PreAuthorize("hasRole('ADMIN') OR (hasRole('DRIVER') AND @jwtUtils.extractId(authentication.credentials).equals(#driverId))")
-	public ResponseEntity<RideTransactionResponse> findCurrentWaitingTransaction(@RequestParam("driver-id") Long driverId) {
+	public ResponseEntity<BookingResponse> findCurrentWaitingTransaction(@RequestParam("driver-id") Long driverId)
+			throws InterruptedException {
 		return ResponseEntity.ok(rideTransactionService.findCurrentWaitingTransaction(driverId, Duration.ofSeconds(2)));
 	}
 

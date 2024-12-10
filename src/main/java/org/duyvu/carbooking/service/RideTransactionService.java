@@ -19,6 +19,7 @@ import org.duyvu.carbooking.mapper.RideTransactionToRideTransactionResponseMappe
 import org.duyvu.carbooking.model.RideTransactionStatus;
 import org.duyvu.carbooking.model.UserType;
 import org.duyvu.carbooking.model.request.RideTransactionRequest;
+import org.duyvu.carbooking.model.response.BookingResponse;
 import org.duyvu.carbooking.model.response.RideTransactionResponse;
 import org.duyvu.carbooking.repository.DriverRepository;
 import org.duyvu.carbooking.repository.FareRepository;
@@ -64,7 +65,7 @@ public class RideTransactionService {
 				= Set.of(LocalTime.of(17, 0), LocalTime.of(18, 0), LocalTime.of(19, 0));
 	}
 
-	private double calculatePrice(Integer transactionTypeId, Point startLocation, Point endLocation) {
+	public double calculatePrice(Integer transactionTypeId, Point startLocation, Point endLocation) {
 		Fare fare = fareRepository.findByTransportationTypeId(transactionTypeId).orElseThrow(EntityNotFoundException::new);
 		double price = fare.getPrice();
 		price *= SpecialDayTime.HOLIDAYS.contains(LocalDate.now().withYear(0)) ? fare.getHolidayRate() : fare.getNormalDayRate();
@@ -101,7 +102,7 @@ public class RideTransactionService {
 				Objects.requireNonNull(driverRepository.findById(request.getDriverId()).orElse(null)).getTransportationType().getId(),
 				rideTransaction.getStartLocation(), rideTransaction.getDestinationLocation()));
 
-		return rideTransactionRepository.save(rideTransaction).getId();
+		return rideTransactionRepository.saveAndFlush(rideTransaction).getId();
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
@@ -114,14 +115,16 @@ public class RideTransactionService {
 		return rideTransactionRepository.save(rideTransaction).getId();
 	}
 
-	public RideTransactionResponse findCurrentWaitingTransaction(Long driverId, Duration timeout) {
+	@SuppressWarnings({"BusyWait"})
+	public BookingResponse findCurrentWaitingTransaction(Long driverId, Duration timeout) throws InterruptedException {
 		Instant startTime = Instant.now();
 		while (Duration.between(startTime, Instant.now()).compareTo(timeout) < 0) {
 			// Can't select from db because ride transaction is in middle of transaction - changes can't be seen
-			RideTransactionResponse response = distributedObject.get("Booking-ride-transaction-%s".formatted(driverId));
+			BookingResponse response = distributedObject.get("Booking-ride-transaction-%s".formatted(driverId));
 			if (response != null) {
 				return response;
 			}
+			Thread.sleep(1000);
 		}
 		return null;
 	}

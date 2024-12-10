@@ -58,7 +58,7 @@ public class DriverController {
 	@PostMapping("/{driver_id}/confirm")
 	@PreAuthorize("hasRole('ADMIN') OR (hasRole('DRIVER') AND @jwtUtils.extractId(authentication.credentials).equals(#driverId))")
 	public ResponseEntity<Long> confirmWaitingRideTransaction(@PathVariable("driver_id") Long driverId,
-															  @RequestBody boolean isConfirmed) {
+															  @RequestBody boolean isConfirmed) throws InterruptedException {
 		return ResponseEntity.ok(driverService.confirmWaitingRideTransaction(driverId, isConfirmed));
 	}
 

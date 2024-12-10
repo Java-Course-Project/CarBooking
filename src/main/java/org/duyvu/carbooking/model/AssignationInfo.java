@@ -19,5 +19,4 @@ public class AssignationInfo {
 
 	private AssignationStatus assignationStatus;
 
-	private Long rideTransactionId;
 }

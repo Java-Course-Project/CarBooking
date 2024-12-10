@@ -23,8 +23,7 @@ public class DistributedObject {
 		bucket.set(value, timeout);
 	}
 
-	public <T> void set(String name, T value) {
-		RBucket<T> bucket = client.getBucket(OBJECT_KEY_PREFIX + name);
-		bucket.set(value);
+	public void delete(String name) {
+		client.getBucket(OBJECT_KEY_PREFIX + name).delete();
 	}
 }

@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.duyvu.carbooking.model.RideTransactionStatus;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.locationtech.jts.geom.Point;
 
 @Getter
@@ -54,7 +55,7 @@ public class RideTransaction {
 	private Driver driver;
 
 	@Column(name = "end_time", nullable = false)
-	@CreationTimestamp
+	@UpdateTimestamp
 	private Instant endTime;
 
 	@Column(name = "start_location", columnDefinition = "point not null")

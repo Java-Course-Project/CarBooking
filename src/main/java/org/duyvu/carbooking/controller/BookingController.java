@@ -21,7 +21,7 @@ public class BookingController {
 	@PreAuthorize("""
 		hasRole('ADMIN') OR (hasRole('CUSTOMER') AND @jwtUtils.extractId(authentication.credentials).equals(#bookingRequest.customerId))
 	""")
-	public ResponseEntity<Long> book(@RequestBody @Valid BookingRequest bookingRequest) throws InterruptedException {
+	public ResponseEntity<Long> book(@RequestBody @Valid BookingRequest bookingRequest) {
 		return ResponseEntity.ok(bookingService.book(bookingRequest));
 	}
 }

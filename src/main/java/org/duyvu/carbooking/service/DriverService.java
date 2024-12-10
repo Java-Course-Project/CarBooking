@@ -108,12 +108,30 @@ public class DriverService {
 	}
 
 	@Transactional
-	public Long confirmWaitingRideTransaction(Long id, boolean isConfirmed) {
-		// Can't direct update driver here because of other process is holding lock to driver
-		log.debug("Driver {} confirm {}", id, isConfirmed);
-		distributedObject.set("Booking-%s".formatted(id), isConfirmed, Duration.ofSeconds(20));
-		distributedLock.await("Booking-%s".formatted(id));
-		return id;
+	public Long confirmWaitingRideTransaction(Long id, boolean isConfirmed) throws InterruptedException {
+		// only one driver can confirm at a time
+		if (!distributedLock.tryLock("locking-%s".formatted(id), Duration.ofSeconds(10))) {
+			throw new InvalidStateException("Driver is confirming");
+		}
+		try {
+			Driver driver = driverRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Driver not found"));
+			if (!DriverStatus.NOT_BOOKED.equals(driver.getDriverStatus())) {
+				throw new InvalidStateException("Driver is not booked");
+			}
+
+			// Can't direct update driver here because of other process is holding lock to driver
+			log.debug("Driver {} confirm {}", id, isConfirmed);
+			distributedObject.set("Booking-%s".formatted(id), isConfirmed, Duration.ofSeconds(20));
+			distributedLock.await("Booking-%s".formatted(id));
+
+			distributedLock.wait("Booking-Response-%s".formatted(id), Duration.ofSeconds(10));
+			distributedLock.delete("Booking-Response-%s".formatted(id));
+			return id;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			distributedLock.unlock("locking-%s".formatted(id));
+		}
 	}
 
 	@Transactional

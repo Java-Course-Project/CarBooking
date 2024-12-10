@@ -2,6 +2,7 @@ package org.duyvu.carbooking.model.response;
 
 import java.time.Instant;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import org.locationtech.jts.geom.Coordinate;
 @Setter
 @Getter
 @NoArgsConstructor
+@Builder
 public class RideTransactionResponse {
 	private Long id;
 
