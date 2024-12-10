@@ -32,6 +32,8 @@ public class MessageTransfer {
 
 	private final JmsTemplate jmsTemplate;
 
+	private static final int MAX_PRIORITY = 9;
+
 	public void send(Topic topic, @Valid Message<?> msg) {
 		final long ttl = 30000L;
 		jmsTemplate.execute(session -> {
@@ -41,7 +43,7 @@ public class MessageTransfer {
 
 			// Set custom headers
 			message.setStringProperty("x_custom_id", msg.getId().toString());
-			producer.send(message, DeliveryMode.PERSISTENT, msg.getPriority(), ttl);
+			producer.send(message, DeliveryMode.PERSISTENT, Math.min(msg.getPriority(), MAX_PRIORITY), ttl);
 			return null;
 		}, true);
 	}

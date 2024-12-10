@@ -168,7 +168,7 @@ public class DriverService {
 		return updateStatus(driverId, DriverStatus.NOT_BOOKED);
 	}
 
-	@Scheduled(fixedDelay = 60000L)
+	@Scheduled(fixedDelay = 360000L)
 	@Transactional
 	public void setInactiveDriversToOffline() {
 		final Duration timeout = Duration.ofSeconds(3600);

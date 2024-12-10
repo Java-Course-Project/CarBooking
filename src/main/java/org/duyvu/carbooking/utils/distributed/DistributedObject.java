@@ -22,4 +22,9 @@ public class DistributedObject {
 		RBucket<T> bucket = client.getBucket(OBJECT_KEY_PREFIX + name);
 		bucket.set(value, timeout);
 	}
+
+	public <T> void set(String name, T value) {
+		RBucket<T> bucket = client.getBucket(OBJECT_KEY_PREFIX + name);
+		bucket.set(value);
+	}
 }

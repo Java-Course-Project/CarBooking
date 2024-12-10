@@ -114,9 +114,9 @@ public class RideTransactionService {
 		return rideTransactionRepository.save(rideTransaction).getId();
 	}
 
-	public RideTransactionResponse findCurrentWaitingTransaction(Long driverId, long timeout) throws InterruptedException {
+	public RideTransactionResponse findCurrentWaitingTransaction(Long driverId, Duration timeout) {
 		Instant startTime = Instant.now();
-		while (Duration.between(startTime, Instant.now()).compareTo(Duration.ofSeconds(timeout)) < 0) {
+		while (Duration.between(startTime, Instant.now()).compareTo(timeout) < 0) {
 			// Can't select from db because ride transaction is in middle of transaction - changes can't be seen
 			RideTransactionResponse response = distributedObject.get("Booking-ride-transaction-%s".formatted(driverId));
 			if (response != null) {

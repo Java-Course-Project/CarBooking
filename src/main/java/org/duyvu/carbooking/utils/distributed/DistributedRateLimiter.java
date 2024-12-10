@@ -17,7 +17,6 @@ public class DistributedRateLimiter {
 	public boolean tryAcquire(Duration timeout) {
 		RRateLimiter rateLimiter = client.getRateLimiter("rate-limiter");
 		rateLimiter.trySetRate(RateType.OVERALL, 5000, Duration.ofSeconds(1));
-		log.debug("Current permits {}", rateLimiter.availablePermits());
 		return rateLimiter.tryAcquire(timeout);
 	}
 }
