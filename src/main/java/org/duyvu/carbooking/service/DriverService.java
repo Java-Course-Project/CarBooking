@@ -3,6 +3,7 @@ package org.duyvu.carbooking.service;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.duyvu.carbooking.entity.Customer;
@@ -103,8 +104,9 @@ public class DriverService {
 	}
 
 	@Transactional
-	public Long findShortestAvailableDriver(Coordinate startLocation) {
-		return driverRepository.findShortestAvailableDriverId(CoordinateToPointMapper.INSTANCE.map(startLocation, factory)).orElse(null);
+	public Long findShortestAvailableDriver(Coordinate startLocation, List<Long> driverIds) {
+		return driverRepository.findShortestAvailableDriverId(CoordinateToPointMapper.INSTANCE.map(startLocation, factory), driverIds)
+							   .orElse(null);
 	}
 
 	@Transactional
@@ -114,8 +116,7 @@ public class DriverService {
 			throw new InvalidStateException("Driver is confirming");
 		}
 		try {
-			Driver driver = driverRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Driver not found"));
-			if (!DriverStatus.NOT_BOOKED.equals(driver.getDriverStatus())) {
+			if (distributedObject.get("Booking-%s".formatted(id)) == null) {
 				throw new InvalidStateException("Driver is not booked");
 			}
 

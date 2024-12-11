@@ -2,6 +2,8 @@ package org.duyvu.carbooking.service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,11 +62,14 @@ public class BookingService {
 
 		int priority = 0;
 
+		// an invalid driver id so that the query is not null
+		final List<Long> blacklistDriverIds = new ArrayList<>(List.of(-1L));
+
 		Instant startTime = Instant.now();
 
 		while (Duration.between(startTime, Instant.now()).compareTo(TIMEOUT) < 0) {
 			UUID key = UUID.randomUUID();
-			Message<BookingInfo> message = new Message<>(BookingRequestToBookingInfoMapper.INSTANCE.map(bookingRequest),
+			Message<BookingInfo> message = new Message<>(BookingRequestToBookingInfoMapper.INSTANCE.map(bookingRequest, blacklistDriverIds),
 														 Instant.now(), key, ++priority);
 			messageTransfer.send(MessageTransfer.Topic.CUSTOMER_BOOKING, message);
 
@@ -94,6 +99,8 @@ public class BookingService {
 						rideTransactionService.updateStatus(rideTransactionId, RideTransactionStatus.ASSIGNED);
 						customerService.updateStatus(customerId, CustomerStatus.DRIVER_ASSIGNED);
 						return rideTransactionId;
+					} else if (DENIED.equals(assignationInfo.getAssignationStatus())) {
+						blacklistDriverIds.add(assignationInfo.getDriverId());
 					}
 				}
 			}
@@ -107,7 +114,8 @@ public class BookingService {
 		transactionTemplate.setName("handleBookingRequest");
 		transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 		return transactionTemplate.execute((status) -> {
-			Long id = driverService.findShortestAvailableDriver(message.getData().getStartLocation());
+			Long id = driverService.findShortestAvailableDriver(message.getData().getStartLocation(), message.getData()
+																											 .getBlacklistDriverIds());
 			if (id == null) {
 				return null;
 			}

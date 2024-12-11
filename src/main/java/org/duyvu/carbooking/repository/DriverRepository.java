@@ -1,6 +1,7 @@
 package org.duyvu.carbooking.repository;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.duyvu.carbooking.entity.Driver;
 import org.locationtech.jts.geom.Point;
@@ -31,13 +32,14 @@ public interface DriverRepository extends JpaRepository<Driver, Long>, JpaSpecif
 			) rate
 			ON d.id = rate.driverId
 			WHERE d.driver_status = 'NOT_BOOKED'
+				AND d.id NOT IN (:driverIds)
 			GROUP BY d.id
 			ORDER BY
 				MIN(ST_Distance(d.location, :startLocation) + COALESCE(rate.ratePoint, 0)),
 				d.id
 			LIMIT 1 FOR UPDATE SKIP LOCKED
 			""", nativeQuery = true)
-	Optional<Long> findShortestAvailableDriverId(@Param("startLocation") Point startLocation);
+	Optional<Long> findShortestAvailableDriverId(@Param("startLocation") Point startLocation, @Param("driverIds") List<Long> driverIds);
 
 	@Modifying
 	@Query("UPDATE Driver d SET d.driverStatus = 'OFFLINE' WHERE d.driverStatus = 'NOT_BOOKED' AND d.lastUpdated < :timeout")
