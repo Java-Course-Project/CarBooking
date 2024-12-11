@@ -42,7 +42,9 @@ public class SecurityConfiguration {
 			"/v3/api-docs/**",
 			"/swagger-ui/**",
 			// -- Auth endpoints
-			"/auth/**"
+			"/auth/**",
+			// -- Actuator endpoints
+			"/actuator/**"
 	};
 
 	private final JwtAuthenticationFilter authenticationJwtTokenFilter;
