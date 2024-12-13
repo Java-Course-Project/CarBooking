@@ -81,6 +81,7 @@ public class BookingService {
 				AssignationInfo assignationInfo = handleBookingRequest(requestMessage);
 				if (assignationInfo != null) {
 					distributedLock.await("Booking-Response-%s".formatted(assignationInfo.getDriverId()));
+					blacklistDriverIds.add(assignationInfo.getDriverId());
 					if (CONFIRMED.equals(assignationInfo.getAssignationStatus())) {
 						driverService.updateStatus(assignationInfo.getDriverId(), DriverStatus.ASSIGNED);
 						Long rideTransactionId = rideTransactionService.save(RideTransactionRequest.builder()
@@ -99,8 +100,6 @@ public class BookingService {
 						rideTransactionService.updateStatus(rideTransactionId, RideTransactionStatus.ASSIGNED);
 						customerService.updateStatus(customerId, CustomerStatus.DRIVER_ASSIGNED);
 						return rideTransactionId;
-					} else if (DENIED.equals(assignationInfo.getAssignationStatus())) {
-						blacklistDriverIds.add(assignationInfo.getDriverId());
 					}
 				}
 			}
